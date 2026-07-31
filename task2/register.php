@@ -1,86 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Register</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #f0f4f8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .register-box {
-            background: white;
-            width: 380px;
-            padding: 40px 30px;
-            border-radius: 12px;
-            box-shadow: 0 0 15px #ddd;
-        }
-        .register-title {
-            color: #5522dd;    
-            font-size: 42px;   
-            text-align: center;
-            margin-bottom: 30px;
-            font-weight: bold;
-        }
-        .input-item {
-            margin-bottom: 18px;
-        }
-        .input-item input {
-            width: 100%;
-            height: 44px;
-            padding: 0 15px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
-        }
-        .register-btn {
-            width: 100%;
-            height: 46px;
-            background: #5522dd;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        .back-login {
-            margin-top: 16px;
-            text-align: center;
-            font-size: 14px;
-        }
-        .back-login a {
-            color: #5522dd;
-            text-decoration: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="register-box">
-        <h1 class="register-title">Register</h1>
-        <div class="input-item">
-            <input type="text" placeholder="Username">
-        </div>
-        <div class="input-item">
-            <input type="email" placeholder="Email">
-        </div>
-        <div class="input-item">
-            <input type="password" placeholder="Password">
-        </div>
-        <div class="input-item">
-            <input type="password" placeholder="Confirm Password">
-        </div>
-        <button class="register-btn">Sign Up</button>
-        <div class="back-login">
-            Already have an account? <a href="#">Go Login</a>
-        </div>
-    </div>
-</body>
-</html>
+<?php
+header("Content-type:text/html;charset=utf-8");
+session_start();
+
+$host = 'localhost';
+$dbuser = 'root';
+$dbpass = '';
+$dbname = 'testdb';
+
+
+$conn = mysqli_connect($host, $dbuser, $dbpass, $dbname);
+mysqli_set_charset($conn, 'utf8mb4');
+
+if (!$conn) {
+    die("login failed:" . mysqli_connect_error());
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+
+    //简单校验
+    if (empty($username) || empty($password)) {
+        echo "<script>alert('Username and password cannot be empty');history.back();</script>";
+        exit;
+    }
+
+    $sql_check = "SELECT id FROM user WHERE username = ?";
+    $stmt = mysqli_prepare($conn, $sql_check);
+    mysqli_stmt_bind_param($stmt, "s", $username);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    if (mysqli_fetch_assoc($result)) {
+        echo "<script>alert('Username already exists');history.back();</script>";
+        exit;
+    }
+
+    $pwd_hash = password_hash($password, PASSWORD_DEFAULT);
+
+    $sql_insert = "INSERT INTO user(username,password) VALUES(?,?)";
+    $stmt2 = mysqli_prepare($conn, $sql_insert);
+    mysqli_stmt_bind_param($stmt2, "ss", $username, $pwd_hash);
+
+    if (mysqli_stmt_execute($stmt2)) {
+        echo "<script>alert('Registration successful! Redirecting to login page.');location.href='login.html';</script>";
+    } else {
+        echo "<script>alert('Registration failed: " . mysqli_error($conn) . "');history.back();</script>";
+    }
+}
+?>
