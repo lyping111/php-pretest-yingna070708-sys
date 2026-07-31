@@ -1,0 +1,10 @@
+CREATE DATABASE IF NOT EXISTS testdb DEFAULT CHARACTER SET utf8mb4;
+USE testdb;
+
+CREATE TABLE IF NOT EXISTS `username` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `username` VARCHAR(50) NOT NULL COMMENT 'username',
+  `password` VARCHAR(255) NOT NULL COMMENT '[password]',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
